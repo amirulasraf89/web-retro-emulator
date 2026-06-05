@@ -2,7 +2,7 @@
 
 # 🕹️ Retro Web Emulator
 
-**Emulator konsol retro terus dalam pelayar web anda — tanpa install, tanpa repot.**
+**Play classic retro console games directly in your browser — no installation required.**
 
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
@@ -14,18 +14,18 @@
 
 ---
 
-## ✨ Tentang Projek
+## ✨ About
 
-**Retro Web Emulator** adalah aplikasi web progresif (PWA) yang membolehkan anda memainkan permainan konsol retro klasik terus dalam pelayar — tanpa perlu memasang sebarang perisian tambahan.
+**Retro Web Emulator** is a Progressive Web App (PWA) that lets you play classic retro console games directly in your browser — no software installation needed.
 
-Sokong **7 konsol** ikonik dari era keemasan permainan video, semua dalam satu antara muka yang bersih dan moden.
+It supports **7 iconic consoles** from the golden age of gaming, all wrapped in a clean and modern interface.
 
 ---
 
-## 🎮 Konsol Yang Disokong
+## 🎮 Supported Consoles
 
-| Konsol | Core | Laluan |
-|--------|------|--------|
+| Console | Core | Route |
+|---------|------|-------|
 | 🕹️ Arcade / NeoGeo | `fbneo` | `/neogeo` |
 | 🎮 PlayStation 1 | `psx` | `/psx` |
 | 🟥 Nintendo 64 | `n64` | `/n64` |
@@ -36,33 +36,33 @@ Sokong **7 konsol** ikonik dari era keemasan permainan video, semua dalam satu a
 
 ---
 
-## 🚀 Mula Jalankan
+## 🚀 Getting Started
 
-### Prasyarat
+### Prerequisites
 
-- [Node.js](https://nodejs.org/) v18 atau lebih baru
+- [Node.js](https://nodejs.org/) v18 or higher
 - npm / yarn / pnpm
 
-### Pemasangan
+### Installation
 
 ```bash
-# 1. Klon repositori
+# 1. Clone the repository
 git clone https://github.com/amirulasraf89/web-retro-emulator.git
 cd web-retro-emulator
 
-# 2. Salin fail persekitaran
+# 2. Copy environment file
 cp .env.example .env
 
-# 3. Pasang kebergantungan
+# 3. Install dependencies
 npm install
 
-# 4. Jalankan pelayan pembangunan
+# 4. Start the development server
 npm run dev
 ```
 
-Buka pelayar dan pergi ke **http://localhost:3000**
+Open your browser and go to **http://localhost:3000**
 
-### Bina untuk Pengeluaran
+### Build for Production
 
 ```bash
 npm run build
@@ -71,44 +71,44 @@ npm run preview
 
 ---
 
-## 🗂️ Struktur Projek
+## 🗂️ Project Structure
 
 ```
 web-retro-emulator/
 ├── src/
-│   ├── pages/          # Halaman setiap konsol (psx, n64, snes, gba...)
-│   ├── components/     # Komponen boleh guna semula (ConsolePlayer)
-│   ├── App.tsx         # Pemasangan laluan utama
-│   └── main.tsx        # Titik masuk aplikasi
-├── public/             # Aset statik & fail PWA
-├── dist/               # Output binaan (dijana automatik)
-├── vite.config.ts      # Konfigurasi Vite + PWA
-└── vercel.json         # Konfigurasi deploy Vercel
+│   ├── pages/          # Individual console pages (psx, n64, snes, gba...)
+│   ├── components/     # Reusable components (ConsolePlayer)
+│   ├── App.tsx         # Main routing setup
+│   └── main.tsx        # Application entry point
+├── public/             # Static assets & PWA files
+├── dist/               # Build output (auto-generated)
+├── vite.config.ts      # Vite + PWA configuration
+└── vercel.json         # Vercel deployment config
 ```
 
 ---
 
-## 🛠️ Teknologi
+## 🛠️ Tech Stack
 
-| Teknologi | Kegunaan |
-|-----------|----------|
-| **React 19** | Rangka kerja UI |
-| **TypeScript** | Menaip statik |
-| **Vite** | Alat binaan |
-| **Tailwind CSS v4** | Gaya UI |
-| **React Router v7** | Navigasi halaman |
-| **vite-plugin-pwa** | Sokongan PWA |
-| **Lucide React** | Ikon |
-| **Motion** | Animasi |
-| **Google GenAI** | Integrasi AI |
+| Technology | Purpose |
+|------------|---------|
+| **React 19** | UI framework |
+| **TypeScript** | Static typing |
+| **Vite** | Build tool |
+| **Tailwind CSS v4** | Styling |
+| **React Router v7** | Client-side routing |
+| **vite-plugin-pwa** | PWA support |
+| **Lucide React** | Icons |
+| **Motion** | Animations |
+| **Google GenAI** | AI integration |
 
 ---
 
-## ☁️ Deploy
+## ☁️ Deployment
 
-Projek ini dikonfigurasi untuk deploy ke **Vercel** dan **Firebase Hosting**.
+This project is configured for deployment on **Vercel** and **Firebase Hosting**.
 
-### Vercel (Disyorkan)
+### Vercel (Recommended)
 
 ```bash
 npx vercel --prod
@@ -123,15 +123,15 @@ firebase deploy
 
 ---
 
-## 📄 Lesen
+## 📄 License
 
-Projek ini dibina untuk tujuan pendidikan dan peribadi.  
-Sila pastikan anda memiliki ROM yang anda mainkan secara sah.
+This project is built for educational and personal use.  
+Please ensure you legally own any ROMs you play.
 
 ---
 
 <div align="center">
 
-Dibuat dengan ❤️ oleh **[amirulasraf89](https://github.com/amirulasraf89)**
+Made with ❤️ by **[amirulasraf89](https://github.com/amirulasraf89)**
 
 </div>
