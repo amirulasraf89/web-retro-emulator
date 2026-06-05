@@ -16,6 +16,19 @@
 
 ---
 
+## 📸 Screenshots
+
+<div align="center">
+
+| ROM Upload | Loading Game | Gameplay |
+|:----------:|:------------:|:--------:|
+| ![ROM Upload](docs/IMG_2039.jpg) | ![Loading](docs/IMG_2040.PNG) | ![Gameplay](docs/IMG_2041.jpg) |
+| Select & upload your ROM file | Game loading screen | Metal Slug X with touch controls |
+
+</div>
+
+---
+
 ## ✨ About
 
 **Retro Web Emulator** is a Progressive Web App (PWA) that lets you play classic retro console games directly in your browser — no software installation needed.
