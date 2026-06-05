@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Emulator</title>
+    <style>
+        body, html { 
+            margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; color: white;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            touch-action: none;
+        }
+        #game { width: 100%; height: 100%; position: relative; }
+        
+        /* Hide Default D-Pad / Analog stick from EmulatorJS */
+        .ejs_dpad_main, .ejs_virtualGamepad_left { display: none !important; }
+
+        #nipple-zone {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 50%;
+            height: 100%;
+            z-index: 100;
+            display: none;
+            touch-action: none;
+            pointer-events: none;
+        }
+
+        #custom-joystick-base {
+            position: absolute;
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            border: 2px solid rgba(255,255,255,0.4);
+            display: none;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+        }
+
+        #custom-joystick-ball {
+            position: absolute;
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.7);
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Shoulder Buttons */
+        .shoulder-btn {
+            position: fixed;
+            z-index: 200;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            width: 62px;
+            height: 34px;
+            border-radius: 10px;
+            background: rgba(40,40,40,0.82);
+            border: 2px solid rgba(255,255,255,0.5);
+            color: #fff;
+            font-size: 13px;
+            font-weight: bold;
+            font-family: sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+            transition: background 0.1s;
+        }
+        .shoulder-btn.pressed {
+            background: rgba(99,102,241,0.85);
+            border-color: #fff;
+        }
+        .ejs-btn-pressed {
+            background: rgba(99,102,241,0.85) !important;
+            border-color: #fff !important;
+        }
+        #btn-l1 { left: 10px;  }
+        #btn-l2 { left: 82px;  }
+        #btn-r1 { right: 82px; }
+        #btn-r2 { right: 10px; }
+
+        #right-blocker {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 50%;
+            height: 100%;
+            z-index: 50;
+            display: none;
+            touch-action: none;
+            pointer-events: none;
+        }
+
+        @media (pointer: coarse), (hover: none) {
+            #nipple-zone { display: block; }
+            #right-blocker { display: block; }
+        }
+
+        /* Custom Dynamic Gamepad Buttons */
+        .ejs_virtualGamepad_right {
+            width: 200px !important;
+            height: 200px !important;
+            bottom: 30px !important;
+            right: 10px !important;
+            transform: none !important;
+            z-index: 100 !important;
+            visibility: visible !important;
+            display: block !important;
+        }
+
+        .custom-btn-main {
+            width: 80px !important; 
+            height: 80px !important; 
+            line-height: 80px !important; 
+            font-size: 35px !important; 
+            right: 10px !important; 
+            bottom: 10px !important; 
+            left: auto !important;
+            top: auto !important;
+            margin: 0 !important;
+            background: rgba(40,40,40,0.85) !important; 
+            color: #fff !important;
+            border: 3px solid #fff !important; 
+            border-radius: 50% !important;
+            position: absolute !important;
+            transform: none !important;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5) !important;
+        }
+
+        .custom-btn-secondary {
+            width: 55px !important; 
+            height: 55px !important; 
+            line-height: 55px !important; 
+            font-size: 22px !important; 
+            left: auto !important;
+            top: auto !important;
+            margin: 0 !important;
+            background: rgba(40,40,40,0.85) !important; 
+            color: #ccc !important;
+            border: 2px solid #ccc !important; 
+            border-radius: 50% !important;
+            position: absolute !important;
+            transform: none !important;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5) !important;
+        }
+
+        .custom-pos-left { right: 110px !important; bottom: 20px !important; }
+        .custom-pos-topleft { right: 85px !important; bottom: 85px !important; }
+        .custom-pos-top { right: 20px !important; bottom: 110px !important; }
+
+        #emu-toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(30,30,30,0.92);
+            color: #fff;
+            padding: 10px 22px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: sans-serif;
+            z-index: 9999;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        #emu-toast.show { opacity: 1; }
+    </style>
+</head>
+<body>
+    <div id="game"></div>
+    <div id="right-blocker"></div>
+    <div id="btn-l2" class="shoulder-btn">L2</div>
+    <div id="btn-l1" class="shoulder-btn">L1</div>
+    <div id="btn-r2" class="shoulder-btn">R2</div>
+    <div id="btn-r1" class="shoulder-btn">R1</div>
+    <div id="nipple-zone">
+        <div id="custom-joystick-base">
+            <div id="custom-joystick-ball"></div>
+        </div>
+    </div>
+    <div id="emu-toast"></div>
+    <script>
+    document.addEventListener('contextmenu', event => event.preventDefault());
+
+    function showToast(msg) {
+        const t = document.getElementById('emu-toast');
+        if (!t) return;
+        t.textContent = msg;
+        t.classList.add('show');
+        clearTimeout(t._timer);
+        t._timer = setTimeout(() => t.classList.remove('show'), 2500);
+    }
+    
+    window.addEventListener('message', function(event) {
+        if (!event.data || typeof event.data !== 'object') return;
+        const data = event.data;
+        
+        if (data.type === 'START_EMULATOR') {
+            
+            function ensureUint8Array(val) {
+                if (!val) return null;
+                if (val instanceof Uint8Array) return val;
+                if (val instanceof ArrayBuffer) return new Uint8Array(val);
+                if (val.buffer instanceof ArrayBuffer) return new Uint8Array(val.buffer);
+                if (typeof val === 'object') {
+                    const arr = Object.values(val);
+                    if (arr.length > 0 && typeof arr[0] === 'number') {
+                        return new Uint8Array(arr);
+                    }
+                }
+                return val;
+            }
+
+            window.EJS_player = '#game';
+            window.EJS_core = data.core;
+            window.EJS_gameName = data.gameName || 'default_game'; 
+            window.EJS_color = '#6366f1'; 
+            window.EJS_startOnLoaded = false;
+            window.EJS_pathtodata = 'https://cdn.jsdelivr.net/gh/ethanaobrien/emulatorjs@main/data/';
+
+            window.EMU_SRAM = ensureUint8Array(data.sramData);
+            window.EMU_STATE = ensureUint8Array(data.stateData);
+
+            // --- FUNGSI SAVE/LOAD STATE ---
+            window.EJS_onSaveState = function(stateData) {
+                try {
+                    let raw = stateData;
+                    if (stateData && stateData.state) raw = stateData.state;
+
+                    let cleanState;
+                    if (raw instanceof Uint8Array) cleanState = raw;
+                    else if (raw instanceof ArrayBuffer) cleanState = new Uint8Array(raw);
+                    else if (raw && raw.buffer instanceof ArrayBuffer) cleanState = new Uint8Array(raw.buffer);
+                    else if (raw && typeof raw === 'object') cleanState = new Uint8Array(Object.values(raw));
+                    else return false;
+
+                    if (!cleanState || cleanState.byteLength === 0) return false;
+
+                    window.EMU_STATE = cleanState;
+                    const buf = cleanState.buffer.slice(0);
+                    window.parent.postMessage({
+                        type: 'SAVE_STATE_DATA',
+                        gameName: window.EJS_gameName,
+                        stateData: buf
+                    }, '*', [buf]);
+                    showToast('✅ State saved!');
+                    return true;
+                } catch (e) { return false; }
+            };
+
+            window.EJS_onLoadState = function() {
+                if (!window.EMU_STATE || window.EMU_STATE.byteLength === 0) {
+                    showToast('❌ No saved state found.');
+                    return null;
+                }
+                try {
+                    const emu = window.EJS_emulator;
+                    if (emu && emu.gameManager && typeof emu.gameManager.loadState === 'function') {
+                        setTimeout(() => {
+                            try { emu.gameManager.loadState(window.EMU_STATE); } catch(e) {}
+                        }, 50);
+                    }
+                } catch(e) {}
+                showToast('▶️ State loaded!');
+                return window.EMU_STATE;
+            };
+
+            // Inject the SRAM back right before the core loads it, if possible!
+            window.EJS_onGameStart = function() {
+                if (window.EMU_SRAM && window.EMU_SRAM.byteLength > 0 && window.EJS_emulator && typeof window.EJS_emulator.loadSave === 'function') {
+                    window.EJS_emulator.loadSave(window.EMU_SRAM);
+                }
+                // Enable touch blockers + shoulder buttons only after game starts
+                window._gameStarted = true;
+                const nippleZone = document.getElementById('nipple-zone');
+                const rightBlocker = document.getElementById('right-blocker');
+                if (nippleZone) nippleZone.style.pointerEvents = 'auto';
+                if (rightBlocker) rightBlocker.style.pointerEvents = 'auto';
+                ['btn-l1','btn-l2','btn-r1','btn-r2'].forEach(function(id) {
+                    const el = document.getElementById(id);
+                    if (el) el.style.display = 'flex';
+                });
+            };
+
+            // --- FUNGSI SAVE MEMORY CARD (SRAM) ---
+            window.EJS_onSaveSave = function(saveData) {
+                try {
+                    let actualData = null;
+                    
+                    function findSramDeep(obj) {
+                        if (obj instanceof Uint8Array) return obj;
+                        if (obj instanceof ArrayBuffer) return new Uint8Array(obj);
+                        if (typeof obj === 'object' && obj !== null) {
+                            for (let key in obj) {
+                                if (obj[key] instanceof Uint8Array || obj[key] instanceof ArrayBuffer) {
+                                    return findSramDeep(obj[key]);
+                                }
+                                if (typeof obj[key] === 'object') {
+                                    const res = findSramDeep(obj[key]);
+                                    if (res) return res;
+                                }
+                            }
+                            // Fallback if numerical object buffer
+                            const arr = Object.values(obj);
+                            if (arr.length > 0 && typeof arr[0] === 'number') {
+                                return new Uint8Array(arr);
+                            }
+                        }
+                        return null;
+                    }
+
+                    actualData = findSramDeep(saveData);
+
+                    if (!actualData || actualData.byteLength === 0) return;
+                    
+                    window.EMU_SRAM = actualData;
+                    const buf = actualData.buffer.slice(0);
+                    
+                    window.parent.postMessage({
+                        type: 'SAVE_SRAM_DATA',
+                        gameName: window.EJS_gameName,
+                        stateData: buf
+                    }, '*', [buf]);
+                } catch (e) {}
+            };
+
+            // Auto-save cache emulator
+            setInterval(function() {
+                try {
+                    const emu = window.EJS_emulator;
+                    if (emu && typeof emu.saveSaveFiles === 'function') {
+                        emu.saveSaveFiles();
+                    }
+                } catch(e) {}
+            }, 5000);
+
+            // --- SETUP ROM & BIOS ---
+            try {
+                if (typeof data.gameFile === 'string') {
+                    window.EJS_gameUrl = data.gameFile;
+                } else if (data.gameFile && typeof data.gameFile === 'object') {
+                    window.EJS_gameUrl = data.gameFile; 
+                }
+            } catch (error) {}
+
+            if (data.biosFile) {
+                if (typeof data.biosFile === 'string') {
+                    window.EJS_biosUrl = data.biosFile;
+                } else if (data.biosFile && typeof data.biosFile === 'object') {
+                    window.EJS_biosUrl = data.biosFile;
+                }
+            }
+            
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/gh/ethanaobrien/emulatorjs@main/data/loader.js';
+            document.body.appendChild(script);
+
+            initJoystick();
+            initButtonHacks();
+            initShoulderButtons();
+            initRightBlocker();
+        }
+    });
+
+    setInterval(() => {
+        const gameEl = document.getElementById('game');
+        const nippleZone = document.getElementById('nipple-zone');
+        if (!gameEl || !nippleZone) return;
+
+        let menuOpen = false;
+        const allDivs = gameEl.getElementsByTagName('div');
+        
+        for (let i = 0; i < allDivs.length; i++) {
+            const div = allDivs[i];
+            if (div.classList && (
+                div.classList.contains('ejs_virtualGamepad_left') || 
+                div.classList.contains('ejs_virtualGamepad_right') ||
+                div.classList.contains('ejs_virtualGamepad_button') ||
+                div.classList.contains('ejs_dpad_main') || 
+                (div.className && typeof div.className === 'string' && div.className.includes('custom-'))
+            )) { continue; }
+            
+            const style = window.getComputedStyle(div);
+            if ((style.position === 'absolute' || style.position === 'fixed') && 
+                style.display !== 'none' && 
+                style.visibility !== 'hidden' &&
+                style.opacity !== '0' &&
+                style.zIndex && style.zIndex !== 'auto' && parseInt(style.zIndex, 10) >= 50) {
+                if (div.offsetHeight > 50 && div.offsetWidth > 50) {
+                    menuOpen = true;
+                    break;
+                }
+            }
+        }
+
+        const rightBlocker = document.getElementById('right-blocker');
+        const shoulderIds = ['btn-l1','btn-l2','btn-r1','btn-r2'];
+        if (menuOpen) {
+            if (nippleZone.style.pointerEvents !== 'none') {
+                nippleZone.style.pointerEvents = 'none';
+                nippleZone.style.opacity = '0';
+                if (rightBlocker) rightBlocker.style.pointerEvents = 'none';
+                shoulderIds.forEach(function(id) {
+                    const el = document.getElementById(id);
+                    if (el) el.style.display = 'none';
+                });
+                if (window.resetAllKeys) window.resetAllKeys();
+            }
+        } else if (window._gameStarted) {
+            nippleZone.style.pointerEvents = 'auto';
+            nippleZone.style.opacity = '1';
+            if (rightBlocker) rightBlocker.style.pointerEvents = 'auto';
+            shoulderIds.forEach(function(id) {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'flex';
+            });
+        }
+    }, 300);
+
+    function initButtonHacks() {
+        const attachedBtns = new WeakSet();
+
+        setInterval(() => {
+            const buttons = document.querySelectorAll('.ejs_virtualGamepad_button');
+            const allActionBtns = Array.from(buttons).filter(b => ['A','B','X','Y','⭕','✖','⬛','▲','SQUARE','TRIANGLE'].includes(b.innerText.trim().toUpperCase()));
+            const hasX = allActionBtns.some(b => ['X', '✖'].includes(b.innerText.trim().toUpperCase()));
+
+            buttons.forEach(btn => {
+                const txt = btn.innerText.trim().toUpperCase();
+                btn.classList.remove('custom-btn-main', 'custom-btn-secondary', 'custom-pos-left', 'custom-pos-top', 'custom-pos-topleft');
+
+                if (txt === 'X' || txt === '✖' || (!hasX && (txt === 'A' || txt === '⭕'))) {
+                    btn.classList.add('custom-btn-main');
+                }
+                else if (txt === 'A' || txt === '⭕' || txt === 'O') {
+                    btn.classList.add('custom-btn-secondary', 'custom-pos-top');
+                }
+                else if (txt === 'B' || txt === 'SQUARE' || txt === '⬛') {
+                    btn.classList.add('custom-btn-secondary', 'custom-pos-left');
+                }
+                else if (txt === 'Y' || txt === 'TRIANGLE' || txt === '▲') {
+                    btn.classList.add('custom-btn-secondary', 'custom-pos-topleft');
+                }
+
+                // Attach press colour feedback once per button
+                if (!attachedBtns.has(btn)) {
+                    attachedBtns.add(btn);
+                    btn.addEventListener('touchstart',  () => btn.classList.add('ejs-btn-pressed'),    { passive: true });
+                    btn.addEventListener('touchend',    () => btn.classList.remove('ejs-btn-pressed'), { passive: true });
+                    btn.addEventListener('touchcancel', () => btn.classList.remove('ejs-btn-pressed'), { passive: true });
+                }
+            });
+        }, 1000);
+    }
+
+    function positionShoulderButtons() {
+        // Find the highest (smallest top value) face button
+        const faceBtns = document.querySelectorAll(
+            '.ejs_virtualGamepad_button, .ejs_virtualGamepad_right'
+        );
+        let minTop = window.innerHeight;
+        faceBtns.forEach(function(btn) {
+            const rect = btn.getBoundingClientRect();
+            if (rect.width > 0 && rect.height > 0) {
+                minTop = Math.min(minTop, rect.top);
+            }
+        });
+
+        // If no face buttons found yet, fallback to 200px from bottom
+        if (minTop === window.innerHeight) {
+            minTop = window.innerHeight - 200;
+        }
+
+        const GAP = 60;
+        const btnH = 34;
+        const topVal = minTop - GAP - btnH;
+
+        ['btn-l1','btn-l2','btn-r1','btn-r2'].forEach(function(id) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.style.top = topVal + 'px';
+                el.style.bottom = 'auto';
+            }
+        });
+    }
+
+    function initRightBlocker() {
+        const blocker = document.getElementById('right-blocker');
+        if (!blocker) return;
+        blocker.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+        }, { passive: false });
+    }
+
+    function initShoulderButtons() {
+        // PSX shoulder button key mappings (EmulatorJS defaults)
+        const buttons = [
+            { id: 'btn-l1', label: 'L1', key: 'q', keyCode: 81 },
+            { id: 'btn-l2', label: 'L2', key: 'e', keyCode: 69 },
+            { id: 'btn-r1', label: 'R1', key: 'r', keyCode: 82 },
+            { id: 'btn-r2', label: 'R2', key: 't', keyCode: 84 },
+        ];
+
+        function fireKey(key, keyCode, isDown) {
+            const type = isDown ? 'keydown' : 'keyup';
+            try {
+                const e = document.createEvent('Event');
+                e.initEvent(type, true, true);
+                e.keyCode = keyCode; e.which = keyCode;
+                e.key = key; e.code = 'Key' + key.toUpperCase();
+                document.dispatchEvent(e);
+                window.dispatchEvent(e);
+                const canvas = document.querySelector('canvas') || document.getElementById('game');
+                if (canvas) canvas.dispatchEvent(e);
+            } catch(err) {}
+        }
+
+        function tryEJSButton(label, isDown) {
+            // Also try to press the EJS virtual button directly if it exists
+            const btns = document.querySelectorAll('.ejs_virtualGamepad_button');
+            for (let i = 0; i < btns.length; i++) {
+                if (btns[i].innerText.trim().toUpperCase() === label) {
+                    const rect = btns[i].getBoundingClientRect();
+                    const cx = rect.left + rect.width / 2;
+                    const cy = rect.top + rect.height / 2;
+                    try {
+                        const touch = new Touch({ identifier: 9000 + i, target: btns[i], clientX: cx, clientY: cy });
+                        const te = new TouchEvent(isDown ? 'touchstart' : 'touchend', {
+                            bubbles: true, cancelable: true,
+                            touches: isDown ? [touch] : [],
+                            changedTouches: [touch]
+                        });
+                        btns[i].dispatchEvent(te);
+                    } catch(e) {}
+                    break;
+                }
+            }
+        }
+
+        // Poll until face buttons appear, then position correctly
+        let attempts = 0;
+        const posInterval = setInterval(function() {
+            positionShoulderButtons();
+            attempts++;
+            const hasBtns = document.querySelectorAll('.ejs_virtualGamepad_button').length > 0;
+            if (hasBtns || attempts > 20) clearInterval(posInterval);
+        }, 500);
+
+        // Re-position on resize
+        window.addEventListener('resize', positionShoulderButtons);
+
+        buttons.forEach(function(cfg) {
+            const el = document.getElementById(cfg.id);
+            if (!el) return;
+
+            el.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                el.classList.add('pressed');
+                fireKey(cfg.key, cfg.keyCode, true);
+                tryEJSButton(cfg.label, true);
+            }, { passive: false });
+
+            el.addEventListener('touchend', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                el.classList.remove('pressed');
+                fireKey(cfg.key, cfg.keyCode, false);
+                tryEJSButton(cfg.label, false);
+            }, { passive: false });
+
+            el.addEventListener('touchcancel', function(e) {
+                e.stopPropagation();
+                el.classList.remove('pressed');
+                fireKey(cfg.key, cfg.keyCode, false);
+            }, { passive: false });
+        });
+    }
+
+    function initJoystick() {
+        const zone    = document.getElementById('nipple-zone');
+        const base    = document.getElementById('custom-joystick-base');
+        const ball    = document.getElementById('custom-joystick-ball');
+        const RADIUS  = 48; // max ball travel from center
+        const THRESHOLD = 0.35;
+
+        if (!window.currentKeys) window.currentKeys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false };
+
+        window.resetAllKeys = function() {
+            triggerKey('ArrowRight', false);
+            triggerKey('ArrowLeft', false);
+            triggerKey('ArrowUp', false);
+            triggerKey('ArrowDown', false);
+        };
+
+        function triggerKey(key, isDown) {
+            if (window.currentKeys[key] === isDown) return;
+            window.currentKeys[key] = isDown;
+            const type = isDown ? 'keydown' : 'keyup';
+            const keyCode = key === 'ArrowUp' ? 38 : key === 'ArrowDown' ? 40 : key === 'ArrowLeft' ? 37 : 39;
+            try {
+                var e = document.createEvent('Event');
+                e.initEvent(type, true, true);
+                e.keyCode = keyCode; e.which = keyCode;
+                e.key = key; e.code = key;
+                document.dispatchEvent(e);
+                window.dispatchEvent(e);
+                const canvas = document.querySelector('canvas') || document.getElementById('game');
+                if (canvas) canvas.dispatchEvent(e);
+            } catch(err) {}
+        }
+
+        let activeTouchId = null;
+        let originX = 0, originY = 0;
+
+        function onTouchStart(e) {
+            if (activeTouchId !== null) return;
+            const t = e.changedTouches[0];
+            activeTouchId = t.identifier;
+            const rect = zone.getBoundingClientRect();
+            originX = t.clientX - rect.left;
+            originY = t.clientY - rect.top;
+            base.style.left = originX + 'px';
+            base.style.top  = originY + 'px';
+            ball.style.left = '50%';
+            ball.style.top  = '50%';
+            base.style.display = 'block';
+            e.preventDefault();
+        }
+
+        function onTouchMove(e) {
+            if (activeTouchId === null) return;
+            let t = null;
+            for (let i = 0; i < e.touches.length; i++) {
+                if (e.touches[i].identifier === activeTouchId) { t = e.touches[i]; break; }
+            }
+            if (!t) return;
+            const rect = zone.getBoundingClientRect();
+            const dx = (t.clientX - rect.left) - originX;
+            const dy = (t.clientY - rect.top)  - originY;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const clamp = Math.min(dist, RADIUS);
+            const angle = Math.atan2(dy, dx);
+            const bx = Math.cos(angle) * clamp;
+            const by = Math.sin(angle) * clamp;
+            ball.style.left = (50 + (bx / RADIUS) * 40) + '%';
+            ball.style.top  = (50 + (by / RADIUS) * 40) + '%';
+            const nx = dist > 5 ? dx / dist : 0;
+            const ny = dist > 5 ? dy / dist : 0;
+            triggerKey('ArrowRight', nx >  THRESHOLD);
+            triggerKey('ArrowLeft',  nx < -THRESHOLD);
+            triggerKey('ArrowDown',  ny >  THRESHOLD);
+            triggerKey('ArrowUp',    ny < -THRESHOLD);
+            e.preventDefault();
+        }
+
+        function onTouchEnd(e) {
+            let found = false;
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                if (e.changedTouches[i].identifier === activeTouchId) { found = true; break; }
+            }
+            if (!found) return;
+            activeTouchId = null;
+            base.style.display = 'none';
+            window.resetAllKeys();
+        }
+
+        zone.addEventListener('touchstart',  onTouchStart,  { passive: false });
+        zone.addEventListener('touchmove',   onTouchMove,   { passive: false });
+        zone.addEventListener('touchend',    onTouchEnd,    { passive: false });
+        zone.addEventListener('touchcancel', onTouchEnd,    { passive: false });
+
+        if (!window.touchCheckAdded) {
+            window.touchCheckAdded = true;
+            document.addEventListener('visibilitychange', function() {
+                if (document.hidden && window.resetAllKeys) window.resetAllKeys();
+            });
+        }
+    }
+    </script>
+</body>
+</html>

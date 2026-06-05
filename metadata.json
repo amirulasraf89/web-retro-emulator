@@ -1,0 +1,6 @@
+{
+  "name": "PlayStation 1 Web Emulator",
+  "description": "Play PlayStation 1 (PS1) retro games directly in your browser using EmulatorJS. Drag and drop your .iso or .bin ROMs.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
