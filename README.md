@@ -20,10 +20,10 @@
 
 <div align="center">
 
-| ROM Upload | Loading Game | Gameplay |
-|:----------:|:------------:|:--------:|
-| ![ROM Upload](docs/IMG_2039.jpg) | ![Loading](docs/IMG_2040.PNG) | ![Gameplay](docs/IMG_2041.jpg) |
-| Select & upload your ROM file | Game loading screen | Metal Slug X with touch controls |
+| ROM Upload | Gameplay |
+|:----------:|:--------:|
+| ![ROM Upload](docs/IMG_2039.jpg) | ![Gameplay](docs/IMG_2042.jpg) |
+| Select & upload your ROM file | In-game with on-screen touch controls |
 
 </div>
 
